@@ -32,6 +32,6 @@ func drawLineVertical(x, y1, y2 int) {
 
 func drawText(x, y int, s string) {
 	for i, c := range s {
-		termbox.SetCell(x + i, y, c, termbox.ColorDefault, termbox.ColorDefault)
+		termbox.SetCell(x+i, y, c, termbox.ColorDefault, termbox.ColorDefault)
 	}
 }

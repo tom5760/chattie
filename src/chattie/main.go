@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	"github.com/nsf/termbox-go"
 )
@@ -10,16 +11,31 @@ import (
 // main loop.
 type App struct {
 	isRunning bool
-	inputBox InputBox
+	channel   Channel
+
+	inputBox   InputBox
+	messageBox MessageBox
 }
 
 func main() {
+	var err error
+	var app App
+
+	app.channel, err = NewMulticastChannel("224.0.0.1:6000")
+	if err != nil {
+		log.Fatal("Failed to create multicast channel:", err)
+		return
+	}
+	defer app.channel.Close()
+
 	if err := termbox.Init(); err != nil {
 		log.Fatal("Failed to initialize termbox:", err)
+		return
 	}
 	defer termbox.Close()
 
-	var app App
+	go app.recv()
+
 	app.loop()
 }
 
@@ -37,9 +53,23 @@ func (a *App) loop() {
 	}
 }
 
+func (a *App) recv() {
+	for a.isRunning {
+		message, err := a.channel.Receive()
+		if err != nil {
+			log.Fatal("Failed to read from channel:", err)
+			return
+		}
+
+		a.addMessage(message)
+		a.draw()
+	}
+}
+
 func (a *App) draw() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	a.inputBox.Draw()
+	a.messageBox.Draw()
 	termbox.Flush()
 }
 
@@ -49,7 +79,11 @@ func (a *App) onKeyEvent(event termbox.Event) {
 		a.isRunning = false
 
 	case termbox.KeyEnter:
-		a.inputBox.Clear()
+		data := strings.TrimSpace(a.inputBox.Input)
+		if len(data) > 0 {
+			a.channel.Send(a.addString(a.inputBox.Input))
+			a.inputBox.Clear()
+		}
 
 	case termbox.KeyBackspace, termbox.KeyBackspace2:
 		a.inputBox.PopRune()
@@ -62,4 +96,17 @@ func (a *App) onKeyEvent(event termbox.Event) {
 			a.inputBox.PushRune(event.Ch)
 		}
 	}
+}
+
+func (a *App) addMessage(message *Message) {
+	a.messageBox.PushMessage(message)
+}
+
+func (a *App) addString(data string) *Message {
+	message := &Message{
+		Author: "chappie",
+		Data:   data,
+	}
+	a.addMessage(message)
+	return message
 }

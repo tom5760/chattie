@@ -16,7 +16,7 @@ type InputBox struct {
 func (b *InputBox) Draw() {
 	width, height := termbox.Size()
 
-	// Draw a border around the screen.
+	// Draw a border around the box.
 	drawBox(height-3, 0, width-1, 3)
 
 	// Draw our current input.
@@ -24,7 +24,7 @@ func (b *InputBox) Draw() {
 	drawText(2, height-2, visibleInput)
 
 	// Set the cursor to the end of the input.
-	termbox.SetCursor(2 + len(visibleInput), height-2)
+	termbox.SetCursor(2+len(visibleInput), height-2)
 }
 
 // PushRune appends the rune r to the end of the input string.
@@ -48,7 +48,7 @@ func (b *InputBox) getVisibleInput(width int) string {
 	inputWidth := width - inputPadding
 	inputLength := len(b.Input)
 	if inputLength > inputWidth {
-		return b.Input[inputLength - inputWidth:]
+		return b.Input[inputLength-inputWidth:]
 	} else {
 		return b.Input
 	}
