@@ -13,6 +13,9 @@ build:
 
 clean:
 	-rm -r $(SCRIPT_DIR)/bin
+	-rm -r $(SCRIPT_DIR)/pkg
+	-rm -r $(SCRIPT_DIR)/vendor/bin
+	-rm -r $(SCRIPT_DIR)/vendor/pkg
 
 fmt:
 	go fmt $(PACKAGE_NAME)
